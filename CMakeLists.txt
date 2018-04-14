@@ -18,7 +18,7 @@ catkin_package(
 ### 7 - Libraries/Executables to build (add_library()/add_executable()/target_link_libraries())
 include_directories(${catkin_INCLUDE_DIRS})
 add_executable(xwiimote_node.exe         src/xwiimote_node.cpp)
-target_link_libraries(xwiimote_node.exe  ${catkin_LIBRARIES}  xwiimote)
+target_link_libraries(xwiimote_node.exe  ${catkin_LIBRARIES} xwiimote)
 ### 8 - Tests to build (catkin_add_gtest())
 # nothing to do
 ### 9 - Install rules (install())
