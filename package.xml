@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!-- doc: http://wiki.ros.org/catkin/package.xml -->
+<package format="2">
+  <name>rosxwiimote</name>
+  <version>0.0.0</version>
+  <description>
+    A ROS package to control Wiimotes
+  </description>
+  <maintainer email="jalcocer@ing.uc3m.es">Jonatan Alcocer Luna</maintainer>
+  <maintainer email="arnaud.a.ramey@gmail.com">Arnaud Ramey</maintainer>
+  <license>GPLv2</license>
+  <!-- dependencies -->
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>roscpp</depend>
+  <depend>roslib</depend>
+  <depend>std_msgs</depend>
+  <export>
+      <cpp cflags="-I${prefix} -I${prefix}/build"
+         lflags="-L${prefix}/lib -Wl,-rpath,${prefix}/lib"/>
+  </export>
+</package>

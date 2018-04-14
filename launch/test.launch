@@ -1,0 +1,12 @@
+<launch>
+<node pkg="ffjoy" type="ffjoy_node.exe" name="ffjoy_node" output="screen">
+  <param name="device" value="auto"/>
+</node>
+
+<node pkg="rostopic" type="rostopic" name="cmd_pub" output="screen"
+      args="pub /ffjoy_node/cmd std_msgs/Float64MultiArray '{ data:[.5, 0, 1]}' -r 0.5"/>
+
+<node pkg="rostopic" type="rostopic" name="cmd_echo" output="screen"
+      args="echo /ffjoy_node/cmd "/>
+
+</launch>
