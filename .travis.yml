@@ -25,6 +25,7 @@ before_script: #  Use this to prepare your build for testing e.g. copy database 
   # Create catkin workspace
   - export CI_SOURCE_PATH=$(pwd)
   # install "xwiimote" from sources
+  - sudo apt-get install  libudev-dev
   - mkdir -p ~/src
   - cd ~/src
   - git clone https://github.com/dvdhrm/xwiimote.git
