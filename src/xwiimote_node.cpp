@@ -7,27 +7,64 @@ extern "C" {
 // C++
 #include <string>
 #include <ros/ros.h>
+#include <std_msgs/Float32.h>
 #include <sensor_msgs/Joy.h>
+#include <sensor_msgs/JoyFeedback.h>
 
 static struct xwii_iface *iface;
 ros::Publisher joy_pub;
+ros::Subscriber fb_sub, rumble_sub;
 sensor_msgs::Joy joy_msg;
-// 4 axes:
-//    left-right rocker (-1 0 1)
-//    up-down rocker (-1 0 1)
-//    nunchuk left-right joystick (-1 .. 1)
-//    nunchuk up-down joystick (-1 .. 1)
-// 9 buttons:
-// 	XWII_KEY_A,
-//  XWII_KEY_B,
-//  XWII_KEY_PLUS,
-//  XWII_KEY_MINUS,
-//  XWII_KEY_HOME,
-//  XWII_KEY_ONE,
-//  XWII_KEY_TWO,
-//  XWII_KEY_C,
-//  XWII_KEY_Z,
+ros::Time rumble_end;
+double rumble_need_stop = false;
 
+////////////////////////////////////////////////////////////////////////////////
+
+void rumble(bool on) {
+  ROS_INFO_THROTTLE(1, "rumble(%i)", on);
+  unsigned int ret = xwii_iface_rumble(iface, on);
+  if (ret) {
+    ROS_ERROR("Error: Cannot toggle rumble motor: %d", ret);
+  }
+}
+
+// led_idx: 1 to 4
+void led(unsigned int led_idx, bool on) {
+  ROS_INFO_THROTTLE(1, "led(led #%i: %i)", led_idx, on);
+  unsigned int ret = xwii_iface_set_led(iface, XWII_LED(led_idx), on);
+  if (ret) {
+    ROS_ERROR("Error: Cannot toggle led #%i: %d", led_idx, ret);
+  }
+}
+
+void fb_cb(const sensor_msgs::JoyFeedback & fb_msg) {
+  switch (fb_msg.type) {
+    case sensor_msgs::JoyFeedback::TYPE_BUZZER:
+      break;
+    case sensor_msgs::JoyFeedback::TYPE_LED:
+      led(fb_msg.id, fabs(fb_msg.intensity) > .5 ? true : false);
+      break;
+    case sensor_msgs::JoyFeedback::TYPE_RUMBLE:
+      rumble(fabs(fb_msg.intensity) > .5 ? true : false);
+      break;
+    default:
+      break;
+  }
+}
+void rumble_cb(const std_msgs::Float32 & rumble_msg) {
+  // compute rumble_end
+  double duration = rumble_msg.data;
+  if (duration < 1E-2)
+    duration = 1E-2;
+  else if (duration > 10)
+    duration = 10;
+  rumble_end = ros::Time::now() + ros::Duration(duration);
+  // start rumble
+  rumble(true);
+  rumble_need_stop = true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 static bool run_iface(struct xwii_iface *iface) {
   struct xwii_event event;
@@ -187,11 +224,17 @@ static bool run_iface(struct xwii_iface *iface) {
       default:
         break;
     } // end switch
+
     if (need_pub) {
       joy_msg.header.stamp = ros::Time::now();
       joy_pub.publish(joy_msg);
-      ros::spinOnce();
     }
+    // check rumble end
+    if (rumble_need_stop && ros::Time::now() > rumble_end) {
+      rumble(false);
+      rumble_need_stop = false;
+    }
+    ros::spinOnce();
   } // end while ros::ok
   return ret;
 }
@@ -234,6 +277,8 @@ int main(int argc, char **argv) {
   joy_msg.axes.resize(4);
   joy_msg.buttons.resize(9);
   joy_pub = nh_private.advertise<sensor_msgs::Joy>("joy", 1);
+  fb_sub = nh_private.subscribe("fb", 1, fb_cb);
+  rumble_sub = nh_private.subscribe("rumble", 1, rumble_cb);
 
   if (device_idx > 0) {
     device_path = get_dev(device_idx);
