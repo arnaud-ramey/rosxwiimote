@@ -24,6 +24,14 @@ before_install:
 before_script: #  Use this to prepare your build for testing e.g. copy database configurations, environment variables, etc.
   # Create catkin workspace
   - export CI_SOURCE_PATH=$(pwd)
+  # install "xwiimote" from sources
+  - mkdir -p ~/src
+  - cd ~/src
+  - git clone https://github.com/dvdhrm/xwiimote.git
+  - cd xwiimote
+  - sh autogen.sh
+  - sudo make install
+  # ROS
   - mkdir -p ~/catkin_ws/src
   - cd ~/catkin_ws/src
   - catkin_init_workspace
@@ -32,7 +40,7 @@ before_script: #  Use this to prepare your build for testing e.g. copy database 
   - wstool init
   - wstool update
   # package depdencies: install things that are not in rosdep
-  - sudo apt-get install  xboxdrv
+  # nothing to do
   # package depdencies: install using rosdep.
   - cd ~/catkin_ws
   - rosdep install -y --from-paths src --ignore-src
