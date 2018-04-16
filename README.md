@@ -102,13 +102,14 @@ To do so:
 
 ```bash
 $ sudo apt purge xwiimote libxwiimote2
+$ sudo apt install  libudev-dev  libncurses-dev
 $ git clone https://github.com/dvdhrm/xwiimote.git
 $ cd xwiimote
 $ sh autogen.sh
+$ make
 $ sudo make install
-````
+```
 
-Check the README inclued in the `xwiimote` project in case of trouble.
 Then to use it:
 
 ```bash
@@ -129,6 +130,38 @@ You can also use xterm that has a small font:
 ```bash
 $ xterm -e xwiishow 1
 ```
+
+Troubleshooting
+---------------
+
+If you get the following error:
+
+```bash
+$ xwiishow
+Xwiishow: error while loading shared library: libxwiimote.so.2: cannot open shared object file: No such file or directory
+```
+
+Then your `LD_LIBRARY_PATH` environment variable must be incomplete:
+
+```bash
+$ export | grep LD_LIBRARY_PATH
+```
+
+It should contain "/usr/local/lib".
+Otherwise append at the end of the file and save:
+
+```bash
+$ nano ~/.bashrc
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+```
+
+Then reload your environment variables:
+
+```bash
+$ source ~/.bashrc
+```
+
+Check the README inclued in the `xwiimote` project in case of trouble.
 
 Licence
 =======
